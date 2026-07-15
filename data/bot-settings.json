@@ -1,9 +1,9 @@
 {
   "bitgetAccountMode": "uta",
   "bitgetDemoTrading": false,
-  "paperCapitalToman": 1000,
+  "paperCapitalToman": 10000,
   "maxTradeToman": 50,
-  "balanceUsagePercent": 10,
+  "balanceUsagePercent": 100,
   "tomanTakerFeeBps": 20,
   "usdtTakerFeeBps": 20,
   "slippageBufferBps": 5,
