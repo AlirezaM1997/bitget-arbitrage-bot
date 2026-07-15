@@ -37,22 +37,21 @@ function detectedOpportunityStatus(record: HistoryRecord) {
 function normalizeNumericInput(value: string) {
   return value.replace(/[,\s]/g, "").replace(/[^\d.]/g, "");
 }
+
+const liveSettingFields: SettingField[] = [
+  { key: "maxTradeToman", label: "سقف معامله واقعی", english: "Max Live Trade", unit: "USDT", description: "حداکثر سرمایه مجاز برای یک چرخه واقعی، حتی اگر موجودی حساب بیشتر باشد.", increase: "اجازه استفاده از سرمایه بیشتر و در نتیجه exposure و ریسک اجرای بالاتر را می‌دهد.", decrease: "زیان احتمالی و فشار روی اردربوک را محدود می‌کند، اما سقف سود واقعی هم کمتر می‌شود." },
+  { key: "balanceUsagePercent", label: "درصد استفاده از موجودی", english: "Balance Usage", unit: "درصد", description: "درصد موجودی آزاد USDT که Live اجازه دارد برای محاسبه سقف سرمایه استفاده کند.", increase: "بخش بزرگ‌تری از کیف پول در معرض معامله قرار می‌گیرد و حاشیه نقد آزاد کمتر می‌شود.", decrease: "سرمایه رزروشده بیشتری در کیف پول باقی می‌ماند و اجرای Live محافظه‌کارانه‌تر می‌شود.", step: 0.1 },
+  { key: "liveSafetyBufferBps", label: "حاشیه ایمنی اجرای واقعی", english: "Live Safety Buffer", unit: "BPS", description: "سود اضافه‌ای که فقط در Live و بالاتر از حداقل بازده لازم است تا تغییر قیمت میان سه سفارش را پوشش دهد.", increase: "ورود واقعی محافظه‌کارانه‌تر و احتمال زیان ناشی از تغییر لحظه‌ای کمتر می‌شود.", decrease: "فرصت‌های بیشتری اجرا می‌شوند، اما حاشیه دفاعی میان سه سفارش کاهش می‌یابد.", step: 0.1 },
+  { key: "orderTimeoutMs", label: "مهلت تکمیل سفارش", english: "Order Timeout", unit: "ms", description: "حداکثر زمان انتظار برای نهایی شدن سفارش واقعی قبل از تلاش برای لغو آن.", increase: "فرصت بیشتری برای fill می‌دهد، اما چرخه مدت بیشتری باز می‌ماند.", decrease: "سفارش زودتر تعیین تکلیف می‌شود، ولی احتمال لغو یا partial fill بیشتر است." }
+];
+
 const settingGroups: Array<{ id: string; title: string; english: string; description: string; icon: typeof Coins; fields: SettingField[] }> = [
-  {
-    id: "capital", title: "سرمایه و اندازه معامله", english: "Capital & Position Sizing", description: "تعیین سقف USDT که در حالت دمو یا واقعی وارد هر چرخه می‌شود.", icon: Coins,
-    fields: [
-      { key: "paperCapitalToman", label: "سرمایه دمو", english: "Demo Capital", unit: "USDT", description: "مقدار تتری که حالت دمو بدون ارسال سفارش برای پیدا کردن و بهینه‌سازی مسیرها شبیه‌سازی می‌کند.", increase: "سود عددی بالقوه بیشتر می‌شود، اما مصرف عمق و اثر قیمت نیز افزایش می‌یابد.", decrease: "مسیرها برای سرمایه کوچک‌تر سنجیده می‌شوند؛ ریسک نقدشوندگی کمتر ولی سود عددی محدودتر است." },
-      { key: "maxTradeToman", label: "سقف معامله واقعی", english: "Max Live Trade", unit: "USDT", description: "حداکثر سرمایه مجاز برای یک چرخه واقعی، حتی اگر موجودی حساب بیشتر باشد.", increase: "اجازه استفاده از سرمایه بیشتر و در نتیجه exposure و ریسک اجرای بالاتر را می‌دهد.", decrease: "زیان احتمالی و فشار روی اردربوک را محدود می‌کند، اما سقف سود واقعی هم کمتر می‌شود." },
-      { key: "balanceUsagePercent", label: "درصد استفاده از موجودی", english: "Balance Usage", unit: "درصد", description: "درصد موجودی آزاد USDT که Live اجازه دارد برای محاسبه سقف سرمایه استفاده کند.", increase: "بخش بزرگ‌تری از کیف پول در معرض معامله قرار می‌گیرد و حاشیه نقد آزاد کمتر می‌شود.", decrease: "سرمایه رزروشده بیشتری در کیف پول باقی می‌ماند و اجرای Live محافظه‌کارانه‌تر می‌شود.", step: 0.1 }
-    ]
-  },
   {
     id: "fees", title: "کارمزد و سودآوری", english: "Fees & Profitability", description: "هزینه‌های تخمینی و حداقل سود لازم برای قابل اجرا شدن مسیر.", icon: Gauge,
     fields: [
       { key: "tomanTakerFeeBps", label: "کارمزد ضلع‌های USDT", english: "USDT-quoted Taker Fee", unit: "BPS", description: "کارمزد fallback برای ضلع‌هایی که quote آن‌ها USDT است؛ نرخ رسمی هر نماد در صورت دسترسی مقدم است.", increase: "محاسبه محافظه‌کارانه‌تر و تعداد فرصت‌ها کمتر می‌شود.", decrease: "فرصت بیشتری دیده می‌شود، اما مقدار کمتر از کارمزد واقعی سود را غیرواقعی نشان می‌دهد.", step: 0.1 },
       { key: "usdtTakerFeeBps", label: "کارمزد ضلع‌های متقاطع", english: "Cross-pair Taker Fee", unit: "BPS", description: "کارمزد fallback برای جفت‌های متقاطع با quoteهایی مانند BTC، ETH یا BGB؛ نرخ رسمی هر نماد در صورت دسترسی مقدم است.", increase: "سود خالص تخمینی کاهش و فیلتر فرصت‌ها سخت‌تر می‌شود.", decrease: "سود تخمینی بیشتر می‌شود؛ فقط در صورت تطابق با سطح واقعی حساب کمش کنید.", step: 0.1 },
       { key: "slippageBufferBps", label: "بافر لغزش", english: "Slippage Buffer", unit: "BPS", description: "حاشیه ایمنی اضافه بر قیمت میانگین عمق برای تغییر بازار بین اسکن و پرشدن سفارش.", increase: "فرصت‌های کمتری پذیرفته می‌شوند ولی تحمل تغییرات لحظه‌ای بیشتر می‌شود.", decrease: "ربات تهاجمی‌تر می‌شود، اما احتمال محقق نشدن سود محاسبه‌شده بالاتر می‌رود.", step: 0.1 },
-      { key: "liveSafetyBufferBps", label: "حاشیه ایمنی اجرای واقعی", english: "Live Safety Buffer", unit: "BPS", description: "سود اضافه‌ای که فقط در Live و بالاتر از Minimum Net Return لازم است تا تغییر قیمت میان سه سفارش را پوشش دهد.", increase: "ورود Live محافظه‌کارانه‌تر و احتمال زیان ناشی از تغییر لحظه‌ای کمتر می‌شود؛ معاملات نیز کمتر می‌شوند.", decrease: "فرصت‌های بیشتری اجرا می‌شوند، اما حاشیه دفاعی میان سه سفارش کاهش می‌یابد.", step: 0.1 },
       { key: "minProfitBps", label: "حداقل بازده خالص", english: "Minimum Net Return", unit: "BPS", description: "حداقل درصد سود خالص کل چرخه پس از عمق، کارمزد و لغزش.", increase: "فقط مسیرهای با حاشیه سود درصدی بیشتر اجرا می‌شوند و تعداد معاملات کم می‌شود.", decrease: "فرصت‌های کوچک‌تر هم اجرا می‌شوند، اما حاشیه خطا و تغییر بازار کمتر است.", step: 0.1 },
       { key: "minNetProfitToman", label: "حداقل سود خالص", english: "Minimum Net Profit", unit: "USDT", description: "حداقل سود عددی مبتنی بر USDT لازم برای قابل اجرا بودن چرخه.", increase: "معاملات کم‌سود حذف می‌شوند، حتی اگر درصد بازده خوبی داشته باشند.", decrease: "چرخه‌های با سود عددی کوچک‌تر پذیرفته می‌شوند و اثر هزینه‌های پیش‌بینی‌نشده مهم‌تر می‌شود." }
     ]
@@ -69,8 +68,7 @@ const settingGroups: Array<{ id: string; title: string; english: string; descrip
   {
     id: "timing", title: "زمان‌بندی و اجرای سفارش", english: "Timing & Execution", description: "سرعت اسکن بازار و مدت انتظار برای تعیین تکلیف سفارش واقعی.", icon: Clock3,
     fields: [
-      { key: "scanIntervalMs", label: "فاصله اسکن خودکار", english: "Scan Interval", unit: "ms", description: "فاصله شروع اسکن‌های بازار؛ حداقل مجاز برنامه ۱۰۰۰ میلی‌ثانیه است.", increase: "بار API و CPU کمتر می‌شود، اما فرصت‌های کوتاه‌مدت دیرتر شناسایی می‌شوند.", decrease: "واکنش سریع‌تر می‌شود، ولی فشار روی API بیشتر است و کمتر از یک ثانیه مجاز نیست." },
-      { key: "orderTimeoutMs", label: "مهلت تکمیل سفارش", english: "Order Timeout", unit: "ms", description: "حداکثر زمان انتظار برای نهایی شدن سفارش واقعی قبل از تلاش برای لغو آن.", increase: "فرصت بیشتری برای fill می‌دهد، اما چرخه مدت بیشتری در وضعیت باز می‌ماند.", decrease: "سفارش زودتر تعیین تکلیف می‌شود، ولی احتمال لغو یا partial fill بیشتر است." }
+      { key: "scanIntervalMs", label: "فاصله اسکن خودکار", english: "Scan Interval", unit: "ms", description: "فاصله شروع اسکن‌های بازار؛ حداقل مجاز برنامه ۱۰۰۰ میلی‌ثانیه است.", increase: "بار API و CPU کمتر می‌شود، اما فرصت‌های کوتاه‌مدت دیرتر شناسایی می‌شوند.", decrease: "واکنش سریع‌تر می‌شود، ولی فشار روی API بیشتر است و کمتر از یک ثانیه مجاز نیست." }
     ]
   }
 ];
@@ -407,56 +405,79 @@ export default function Dashboard() {
         ? "تغییر تنظیمات تا پایان معامله یا بازیابی در حال اجرا قفل است."
         : "این تنظیمات فقط اتصال خصوصی و سفارش‌های حالت واقعی را تغییر می‌دهند.";
 
+  const renderSettingField = (field: SettingField) => {
+    if (!settings) return null;
+    const hintOpen = openSettingHint === field.key;
+    return <div className={`setting-field ${hintOpen ? "hint-open" : ""}`} key={field.key}>
+      <div className="setting-meta"><label htmlFor={`setting-${field.key}`}><b>{field.label}</b><small>{field.english}</small></label><button type="button" className="setting-help" onClick={() => setOpenSettingHint(current => current === field.key ? null : field.key)} aria-expanded={hintOpen} aria-controls={`hint-${field.key}`} title={`راهنمای ${field.english}`}><CircleHelp/></button></div>
+      <div className="setting-input"><input id={`setting-${field.key}`} type="text" inputMode={field.step && field.step < 1 ? "decimal" : "numeric"} value={formatSettingNumber(settings[field.key])} onChange={event => updateNumber(field.key, event.target.value)}/><em>{field.unit}</em></div>
+      {hintOpen && <div className="setting-hint" id={`hint-${field.key}`}><p>{field.description}</p><div><span className="hint-up"><TrendingUp/><b>اگر بیشتر شود</b><small>{field.increase}</small></span><span className="hint-down"><TrendingDown/><b>اگر کمتر شود</b><small>{field.decrease}</small></span></div></div>}
+    </div>;
+  };
+
   return <main className="triangle-only-dashboard">
     <header className="hero">
       <div className="brand"><div className="logo">△</div><div><span className="eyebrow">BITGET TRIANGULAR ARBITRAGE</span><h1>داشبورد آربیتراژ مثلثی</h1><p>اسکن کامل بازار Spot با شروع و پایان USDT</p></div></div>
     </header>
 
-    <section className={`trading-mode-panel panel ${mode}`}>
-      <div className="trading-mode-heading">
-        <div><span className="eyebrow">TRADING MODE</span><h2>حالت کار ربات</h2><p>دمو فقط محاسبه می‌کند؛ حالت واقعی اجرای خودکار سفارش‌ها را فعال می‌کند.</p></div>
-        <div className="trading-mode-switch" role="group" aria-label="انتخاب حالت دمو یا واقعی">
-          <button type="button" className={mode === "demo" ? "active demo" : ""} aria-pressed={mode === "demo"} onClick={() => void selectDashboardMode("demo")}><Coins/><span><b>حالت دمو</b><small>بدون سفارش واقعی</small></span></button>
-          <button type="button" className={mode === "live" ? "active live" : ""} aria-pressed={mode === "live"} onClick={() => void selectDashboardMode("live")}><ShieldAlert/><span><b>حالت واقعی</b><small>{realModeActive ? "فعال" : "برای فعال‌سازی کلیک کنید"}</small></span></button>
-        </div>
-      </div>
-
-      <div className="bitget-connection-settings">
-        <div className="bitget-connection-copy"><span className="eyebrow">BITGET PRIVATE CONNECTION</span><b>تنظیمات حساب صرافی</b><small>دموی محلی بالا همیشه بدون سفارش است؛ «Bitget Demo API» فقط برای API Key آزمایشی خود صرافی استفاده می‌شود.</small></div>
-        <div className="bitget-connection-control">
-          <span>نوع حساب API</span>
-          <div role="group" aria-label="نوع حساب API بیت‌گت">
-            <button type="button" className={settings?.bitgetAccountMode === "uta" ? "active" : ""} aria-pressed={settings?.bitgetAccountMode === "uta"} disabled={bitgetConnectionLocked} onClick={() => updateBitgetAccountMode("uta")}><b>UTA</b><small>پیشنهادی</small></button>
-            <button type="button" className={settings?.bitgetAccountMode === "classic" ? "active" : ""} aria-pressed={settings?.bitgetAccountMode === "classic"} disabled={bitgetConnectionLocked} onClick={() => updateBitgetAccountMode("classic")}><b>Classic</b><small>Spot V2</small></button>
+    <section className="mode-workspaces" aria-label="حالت‌های دمو و واقعی">
+      <article className={`mode-workspace demo-workspace ${mode === "demo" ? "active" : ""}`}>
+        <header className="mode-workspace-head">
+          <span className="mode-workspace-icon"><Coins/></span>
+          <div><span className="eyebrow">DEMO SIMULATION</span><h2>حالت دمو</h2><p>اسکن تمام بازارها و تمام چرخه‌های USDT با سرمایه مجازی؛ بدون اتصال به کیف پول و بدون سفارش.</p></div>
+          <span className={`mode-state-badge ${mode === "demo" ? "active" : ""}`}>{mode === "demo" ? "حالت فعال" : "غیرفعال"}</span>
+        </header>
+        <div className="demo-mode-console">
+          <div className="demo-capital-control">
+            <label htmlFor="demo-capital"><span>سرمایه ورود دمو</span><small>مقدار تتر مبنای ارزیابی تمام چرخه‌ها</small></label>
+            <div><input id="demo-capital" type="text" inputMode="decimal" value={settings ? formatSettingNumber(settings.paperCapitalToman) : ""} onChange={event => updateNumber("paperCapitalToman", event.target.value)} aria-label="سرمایه دمو به تتر"/><em>USDT</em></div>
+            <button type="button" onClick={() => void selectDashboardMode("demo")} disabled={loading || !settings || settings.paperCapitalToman <= 0}><RefreshCw className={loading && mode === "demo" ? "spin" : ""}/>{loading && mode === "demo" ? "در حال محاسبه…" : "محاسبه سود دمو"}</button>
           </div>
-        </div>
-        <div className="bitget-connection-control">
-          <span>محیط سفارش Bitget</span>
-          <div role="group" aria-label="محیط سفارش بیت‌گت">
-            <button type="button" className={settings && !settings.bitgetDemoTrading ? "active" : ""} aria-pressed={Boolean(settings && !settings.bitgetDemoTrading)} disabled={bitgetConnectionLocked} onClick={() => updateBitgetDemoTrading(false)}><b>Mainnet</b><small>حساب اصلی</small></button>
-            <button type="button" className={settings?.bitgetDemoTrading ? "active demo-api" : ""} aria-pressed={Boolean(settings?.bitgetDemoTrading)} disabled={bitgetConnectionLocked} onClick={() => updateBitgetDemoTrading(true)}><b>Bitget Demo API</b><small>paptrading</small></button>
+          <div className="demo-profit-preview">
+            <div><span>سرمایه قابل اجرا</span><b>{demoOpportunity ? `${format(demoOpportunity.inputToman)} USDT` : "—"}</b></div>
+            <div><span>خروجی تخمینی</span><b>{demoOpportunity ? `${format(demoOpportunity.outputToman)} USDT` : "—"}</b></div>
+            <div className={demoOpportunity && Number(demoOpportunity.netProfitToman) >= 0 ? "positive" : ""}><span>سود خالص تخمینی</span><b>{demoOpportunity ? `${format(demoOpportunity.netProfitToman)} USDT` : "—"}</b><small>{demoOpportunity ? `${format(Number(demoOpportunity.profitBps) / 100, 3)}٪` : demoCalculationCurrent ? "فعلاً فرصت قابل اجرای سودده پیدا نشد" : "برای مبلغ جدید محاسبه را اجرا کنید"}</small></div>
           </div>
+          <p className="demo-safety-note"><ShieldAlert/>قیمت‌ها واقعی‌اند، اما این سکشن هیچ دسترسی خصوصی و هیچ امکان ارسال سفارش ندارد.</p>
         </div>
-        <p className={bitgetConnectionLocked ? "locked" : ""}><ShieldAlert/>{bitgetConnectionLockReason}</p>
-      </div>
+        <button type="button" className="mode-activate-button demo" onClick={() => void selectDashboardMode("demo")} disabled={mode === "demo"}>{mode === "demo" ? "دمو فعال است" : "فعال‌کردن حالت دمو"}</button>
+      </article>
 
-      {mode === "demo" ? <div className="demo-mode-console">
-        <div className="demo-capital-control">
-          <label htmlFor="demo-capital"><span>سرمایه ورود دمو</span><small>مقدار تتر مبنای محاسبه هر چرخه</small></label>
-          <div><input id="demo-capital" type="text" inputMode="decimal" value={settings ? formatSettingNumber(settings.paperCapitalToman) : ""} onChange={event => updateNumber("paperCapitalToman", event.target.value)} aria-label="سرمایه دمو به تتر"/><em>USDT</em></div>
-          <button type="button" onClick={() => void runScan()} disabled={loading || !settings || settings.paperCapitalToman <= 0}><RefreshCw className={loading ? "spin" : ""}/>{loading ? "در حال محاسبه…" : "محاسبه سود"}</button>
+      <article className={`mode-workspace live-workspace ${mode === "live" ? "active" : ""}`}>
+        <header className="mode-workspace-head">
+          <span className="mode-workspace-icon"><WalletCards/></span>
+          <div><span className="eyebrow">LIVE EXECUTION</span><h2>حالت واقعی</h2><p>اجرای خودکار چرخه‌های معتبر با موجودی Spot USDT و تنظیمات اختصاصی حساب Bitget.</p></div>
+          <span className={`mode-state-badge ${mode === "live" && realModeActive ? "active" : ""}`}>{mode === "live" && realModeActive ? "اجرای واقعی فعال" : "متوقف"}</span>
+        </header>
+        <section className="mode-settings-block">
+          <div className="mode-settings-title"><span>تنظیمات مخصوص واقعی</span><small>این مقادیر فقط روی سفارش‌های واقعی اثر دارند.</small></div>
+          <div className="mode-setting-grid">{settings ? liveSettingFields.map(renderSettingField) : <div className="settings-loading">در حال بارگذاری تنظیمات…</div>}</div>
+        </section>
+        <div className="bitget-connection-settings">
+          <div className="bitget-connection-copy"><span className="eyebrow">BITGET PRIVATE CONNECTION</span><b>اتصال حساب واقعی</b><small>نوع حساب و محیط API فقط متعلق به این سکشن است.</small></div>
+          <div className="bitget-connection-control">
+            <span>نوع حساب API</span>
+            <div role="group" aria-label="نوع حساب API بیت‌گت">
+              <button type="button" className={settings?.bitgetAccountMode === "uta" ? "active" : ""} aria-pressed={settings?.bitgetAccountMode === "uta"} disabled={bitgetConnectionLocked} onClick={() => updateBitgetAccountMode("uta")}><b>UTA</b><small>پیشنهادی</small></button>
+              <button type="button" className={settings?.bitgetAccountMode === "classic" ? "active" : ""} aria-pressed={settings?.bitgetAccountMode === "classic"} disabled={bitgetConnectionLocked} onClick={() => updateBitgetAccountMode("classic")}><b>Classic</b><small>Spot V2</small></button>
+            </div>
+          </div>
+          <div className="bitget-connection-control">
+            <span>محیط سفارش Bitget</span>
+            <div role="group" aria-label="محیط سفارش بیت‌گت">
+              <button type="button" className={settings && !settings.bitgetDemoTrading ? "active" : ""} aria-pressed={Boolean(settings && !settings.bitgetDemoTrading)} disabled={bitgetConnectionLocked} onClick={() => updateBitgetDemoTrading(false)}><b>Mainnet</b><small>حساب اصلی</small></button>
+              <button type="button" className={settings?.bitgetDemoTrading ? "active demo-api" : ""} aria-pressed={Boolean(settings?.bitgetDemoTrading)} disabled={bitgetConnectionLocked} onClick={() => updateBitgetDemoTrading(true)}><b>Bitget Demo API</b><small>paptrading</small></button>
+            </div>
+          </div>
+          <p className={bitgetConnectionLocked ? "locked" : ""}><ShieldAlert/>{bitgetConnectionLockReason}</p>
         </div>
-        <div className="demo-profit-preview">
-          <div><span>سرمایه قابل اجرا</span><b>{demoOpportunity ? `${format(demoOpportunity.inputToman)} USDT` : "—"}</b></div>
-          <div><span>خروجی تخمینی</span><b>{demoOpportunity ? `${format(demoOpportunity.outputToman)} USDT` : "—"}</b></div>
-          <div className={demoOpportunity && Number(demoOpportunity.netProfitToman) >= 0 ? "positive" : ""}><span>سود خالص تخمینی</span><b>{demoOpportunity ? `${format(demoOpportunity.netProfitToman)} USDT` : "—"}</b><small>{demoOpportunity ? `${format(Number(demoOpportunity.profitBps) / 100, 3)}٪` : demoCalculationCurrent ? "فعلاً فرصت قابل اجرای سودده پیدا نشد" : "برای مبلغ جدید محاسبه را اجرا کنید"}</small></div>
+        <div className="live-mode-console">
+          <div><span>وضعیت اجرا</span><b>{realModeActive ? "فعال" : "متوقف"}</b><small>با کلید همین سکشن روشن یا خاموش می‌شود.</small></div>
+          <div><span>USDT آزاد حساب</span><b>{balance ? `${format(balance.availableToman, 2)} USDT` : balanceError ? "خطا در موجودی" : mode === "live" ? "در حال دریافت…" : "پس از فعال‌سازی"}</b><small>سقف هر چرخه: {settings ? format(settings.maxTradeToman) : "—"} USDT</small></div>
+          <button type="button" onClick={() => void runScan()} disabled={loading || mode !== "live"}><RefreshCw className={loading && mode === "live" ? "spin" : ""}/>{loading && mode === "live" ? "در حال اسکن…" : "اسکن فوری واقعی"}</button>
         </div>
-        <p className="demo-safety-note"><ShieldAlert/>این حالت از بازار واقعی Bitget قیمت می‌گیرد، اما به API خصوصی و موجودی حساب دسترسی نمی‌زند و هیچ سفارشی ارسال نمی‌کند.</p>
-      </div> : <div className="live-mode-console">
-        <div><span>وضعیت اجرای واقعی</span><b>{realModeActive ? "فعال" : "متوقف"}</b><small>با تغییر حالت، اجرای خودکار سمت سرور هم‌زمان روشن یا خاموش می‌شود.</small></div>
-        <div><span>USDT آزاد حساب</span><b>{balance ? `${format(balance.availableToman, 2)} USDT` : balanceError ? "خطا در موجودی" : "در حال دریافت…"}</b><small>سقف هر چرخه: {settings ? format(settings.maxTradeToman) : "—"} USDT</small></div>
-        <button type="button" onClick={() => void runScan()} disabled={loading}><RefreshCw className={loading ? "spin" : ""}/>{loading ? "در حال اسکن…" : "اسکن فوری بازار"}</button>
-      </div>}
+        <button type="button" className="mode-activate-button live" onClick={() => void selectDashboardMode("live")} disabled={mode === "live" && realModeActive}>{mode === "live" && realModeActive ? "حالت واقعی فعال است" : "فعال‌کردن حالت واقعی"}</button>
+      </article>
     </section>
 
     <div className={`notice ${riskSnapshot?.state.masterArmed ? "live-notice" : ""}`}><AlertTriangle size={22}/><div><b>{riskSnapshot?.state.masterArmed ? "اجرای واقعی آربیتراژ مثلثی روشن است." : "حالت دمو فعال است؛ اجرای واقعی خاموش است."}</b><span>{riskSnapshot?.state.masterArmed ? "فقط چرخه‌های USDT که همه کنترل‌های عمق، سود و ریسک را پاس کنند اجازه سفارش دارند." : "قیمت‌ها از اردربوک واقعی کل بازار مرتبط می‌آیند، اما هیچ سفارشی ارسال نمی‌شود."}</span></div></div>
@@ -464,28 +485,21 @@ export default function Dashboard() {
     {error && <div className="error">{error}</div>}
 
     <section className="settings-panel panel" id="settings">
-      <div className="settings-head"><div><span className="eyebrow">BOT CONTROL</span><h2><Settings2/> تنظیمات ربات</h2><p>همه ارزهای موجود در بازار بررسی می‌شوند و تغییرات به‌صورت خودکار ذخیره می‌شوند.</p></div><span className="save-state">{saving ? "در حال ذخیره…" : saved ? "تنظیمات ذخیره شد" : ""}</span></div>
+      <div className="settings-head"><div><span className="eyebrow">SHARED SETTINGS</span><h2><Settings2/> تنظیمات عمومی اسکن</h2><p>این مقادیر در هر دو حالت دمو و واقعی روی تمام بازارها و چرخه‌های آربیتراژ مثلثی اعمال می‌شوند.</p></div><span className="save-state">{saving ? "در حال ذخیره…" : saved ? "تنظیمات ذخیره شد" : ""}</span></div>
       {!settings ? <div className="settings-loading">در حال بارگذاری تنظیمات…</div> : <>
         <div className="settings-groups">{settingGroups.map(group => {
           const GroupIcon = group.icon;
           return <section className="setting-group" key={group.id}>
             <header className="setting-group-head"><GroupIcon/><div><h3>{group.title}<span>{group.english}</span></h3><p>{group.description}</p></div></header>
-            <div className="setting-group-grid">{group.fields.map(field => {
-              const hintOpen = openSettingHint === field.key;
-              return <div className={`setting-field ${hintOpen ? "hint-open" : ""}`} key={field.key}>
-                <div className="setting-meta"><label htmlFor={`setting-${field.key}`}><b>{field.label}</b><small>{field.english}</small></label><button type="button" className="setting-help" onClick={() => setOpenSettingHint(current => current === field.key ? null : field.key)} aria-expanded={hintOpen} aria-controls={`hint-${field.key}`} title={`راهنمای ${field.english}`}><CircleHelp/></button></div>
-                <div className="setting-input"><input id={`setting-${field.key}`} type="text" inputMode={field.step && field.step < 1 ? "decimal" : "numeric"} value={formatSettingNumber(settings[field.key])} onChange={event => updateNumber(field.key, event.target.value)}/><em>{field.unit}</em></div>
-                {hintOpen && <div className="setting-hint" id={`hint-${field.key}`}><p>{field.description}</p><div><span className="hint-up"><TrendingUp/><b>اگر بیشتر شود</b><small>{field.increase}</small></span><span className="hint-down"><TrendingDown/><b>اگر کمتر شود</b><small>{field.decrease}</small></span></div></div>}
-              </div>;
-            })}</div>
+            <div className="setting-group-grid">{group.fields.map(renderSettingField)}</div>
           </section>;
         })}</div>
       </>}
     </section>
 
     {data && <>
-      <section className="stats"><article className={`balance-card ${mode === "live" && balanceError ? "balance-error" : ""}`}>{mode === "demo" ? <><span><Coins/> سرمایه دمو</span><b>{settings ? `${format(settings.paperCapitalToman)} USDT` : "در حال دریافت…"}</b><small>شبیه‌سازی محلی · بدون دسترسی به کیف پول</small></> : <><span><WalletCards/> ارزش کل کیف اسپات <button type="button" className="balance-refresh" onClick={() => void fetchBalance()} disabled={balanceLoading} title="به‌روزرسانی موجودی" aria-label="به‌روزرسانی موجودی"><RefreshCw className={balanceLoading ? "spin" : ""}/></button></span><b>{balanceError ? "خطا در دریافت موجودی" : balance ? `${format(balance.spotTotalToman)} USDT` : "در حال دریافت…"}</b>{balance && !balanceError && <small title={balance.unpricedAssets?.length ? `بدون نرخ USDT: ${balance.unpricedAssets.map(item => item.asset).join(", ")}` : undefined}>USDT نقد آزاد: {format(balance.availableToman, 2)}{balance.unpricedAssets?.length ? ` · ${format(balance.unpricedAssets.length)} دارایی بدون قیمت` : ""}</small>}{balanceError && <small title={balanceError}>{balanceError}</small>}</>}</article><article className="market-coverage-card"><span>پوشش کامل بازار</span><b>{format(data.marketCount)} / {format(data.relevantMarketCount)}</b><small>از {format(data.exchangeMarketCount)} بازار Spot آنلاین · {format(data.triangleCount)} چرخه جهت‌دار · {format(data.depthRefinedMarketCount)} اردربوک عمیق برای نامزدهای سودده</small></article><article><span>فرصت‌های همین اسکن</span><b>{format(data.executableCount)}</b><small>{format(data.positiveCount)} سود مثبت · {format(data.liquiditySafePositiveCount)} نقدشونده · {format(data.evaluatedSizeCount)} سناریوی سرمایه</small></article><article><span>آخرین اسکن کامل</span><b>{new Date(data.scannedAt).toLocaleTimeString("fa-IR")}</b><small>Engine {format(data.engineMs)}ms · {format(data.refinedPathCount)} مسیر بهینه‌سازی‌شده</small></article></section>
-      <section className="results"><div className="section-title"><div><span className="eyebrow">LIVE ORDER BOOK</span><h2>بهترین مسیرها</h2></div><span>{data.mode === "live" ? `اسکن واقعی با سقف ${format(data.capitalToman)} USDT` : `دمو با سرمایه ${format(data.capitalToman)} USDT`} · عمق، اسپرد، اثر قیمت، کارمزد و لغزش لحاظ شده</span></div>
+      <section className="stats"><article className={`balance-card ${mode === "live" && balanceError ? "balance-error" : ""}`}>{mode === "demo" ? <><span><Coins/> سرمایه دمو</span><b>{settings ? `${format(settings.paperCapitalToman)} USDT` : "در حال دریافت…"}</b><small>شبیه‌سازی محلی · بدون دسترسی به کیف پول</small></> : <><span><WalletCards/> ارزش کل کیف اسپات <button type="button" className="balance-refresh" onClick={() => void fetchBalance()} disabled={balanceLoading} title="به‌روزرسانی موجودی" aria-label="به‌روزرسانی موجودی"><RefreshCw className={balanceLoading ? "spin" : ""}/></button></span><b>{balanceError ? "خطا در دریافت موجودی" : balance ? `${format(balance.spotTotalToman)} USDT` : "در حال دریافت…"}</b>{balance && !balanceError && <small title={balance.unpricedAssets?.length ? `بدون نرخ USDT: ${balance.unpricedAssets.map(item => item.asset).join(", ")}` : undefined}>USDT نقد آزاد: {format(balance.availableToman, 2)}{balance.unpricedAssets?.length ? ` · ${format(balance.unpricedAssets.length)} دارایی بدون قیمت` : ""}</small>}{balanceError && <small title={balanceError}>{balanceError}</small>}</>}</article><article className="market-coverage-card"><span>اسکن تمام بازارهای Spot</span><b>{format(data.exchangeMarketCount)} بازار</b><small>{format(data.marketCount)} از {format(data.relevantMarketCount)} بازار سازندهٔ مثلث کامل · {format(data.triangleCount)} چرخه جهت‌دار USDT · {format(data.depthRefinedMarketCount)} بازار با بازبینی عمق</small></article><article><span>فرصت‌های همین اسکن</span><b>{format(data.executableCount)}</b><small>{format(data.positiveCount)} سود مثبت · {format(data.liquiditySafePositiveCount)} نقدشونده · {format(data.evaluatedSizeCount)} سناریوی سرمایه</small></article><article><span>آخرین اسکن کامل</span><b>{new Date(data.scannedAt).toLocaleTimeString("fa-IR")}</b><small>Engine {format(data.engineMs)}ms · {format(data.refinedPathCount)} مسیر بهینه‌سازی‌شده</small></article></section>
+      <section className="results"><div className="section-title"><div><span className="eyebrow">ALL TRIANGULAR CYCLES</span><h2>تمام چرخه‌های بررسی‌شده</h2></div><span>{format(data.opportunities.length)} نتیجه از {format(data.triangleCount)} چرخه جهت‌دار · {data.mode === "live" ? `اسکن واقعی با سقف ${format(data.capitalToman)} USDT` : `دمو با سرمایه ${format(data.capitalToman)} USDT`} · عمق، اسپرد، اثر قیمت، کارمزد و لغزش لحاظ شده</span></div>
         {!data.opportunities.length && <div className="empty">برای این مبلغ هیچ مسیر سه‌مرحله‌ای با عمق و داده تازه پیدا نشد.</div>}
         {data.opportunities.map((opportunity, index) => <article className={`opportunity ${opportunity.executable ? "good" : ""}`} key={opportunity.id}>
           <div className="rank">{format(index + 1)}</div><div className="route">{opportunity.route.map((asset, i) => <span key={`${asset}-${i}`}><b>{asset === "USDT" ? "USDT" : asset}</b>{i < opportunity.route.length - 1 && <ArrowLeft/>}</span>)}</div>

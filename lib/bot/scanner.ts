@@ -17,10 +17,7 @@ export async function scan(
   ]);
   const engineStartedAt = performance.now();
   const preliminary = evaluate(discoveryBooks, options, capitalToman, settings);
-  const refinementSymbols = [...new Set(preliminary.opportunities
-    .filter(opportunity => opportunity.netProfitToman.gt(0))
-    .slice(0, 12)
-    .flatMap(opportunity => opportunity.legs.map(leg => leg.edge.book.symbol)))];
+  const refinementSymbols = fullMarketRefinementSymbols(preliminary.opportunities);
   const deepBooks = await client.getOrderBooksForSymbols(refinementSymbols);
   const deepBySymbol = new Map(deepBooks.map(book => [book.symbol, book]));
   const books = discoveryBooks.map(book => deepBySymbol.get(book.symbol) ?? book);
@@ -43,6 +40,15 @@ export async function scan(
     books,
     options
   };
+}
+
+export function fullMarketRefinementSymbols(opportunities: Array<{
+  netProfitToman: Decimal;
+  legs: Array<{ edge: { book: { symbol: string } } }>;
+}>) {
+  return [...new Set(opportunities
+    .filter(opportunity => opportunity.netProfitToman.gt(0))
+    .flatMap(opportunity => opportunity.legs.map(leg => leg.edge.book.symbol)))];
 }
 
 function evaluate(

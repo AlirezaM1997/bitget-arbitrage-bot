@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       promisingPathCount: result.promisingPathCount, fastRejectedPathCount: result.fastRejectedPathCount,
       refinedPathCount: result.refinedPathCount, positiveCount: result.positiveCount,
       liquiditySafePositiveCount: result.liquiditySafePositiveCount, engineMs: result.engineMs,
-      executableCount: result.executableCount, profitableSaved, opportunities: result.opportunities.slice(0, 100).map(serializeOpportunity) });
+      executableCount: result.executableCount, profitableSaved, opportunities: result.opportunities.map(serializeOpportunity) });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "خطای ناشناخته در اسکن بازار" }, { status: 502 });
   }
